@@ -20,7 +20,15 @@ const when = require('crocks/logic/when')
 const AR = require('./aspectRatio')
 const RS = require('./rungSpec')
 const V = require('./videoProps')
-const {addComputedField, change, multiplier, ratStrToNumber, roundEven, roundToPrecision, swapFields} = require('./utils')
+const {
+  addComputedField,
+  change,
+  multiplier,
+  ratStrToNumber,
+  roundEven,
+  roundToPrecision,
+  swapFields
+} = require('./utils')
 
 // --------------------------------------
 // constants
@@ -280,10 +288,8 @@ const rungSpecsRoundBitrates = parametricLadder =>
 // rungSpecsCapMaxBitrate :: ParametricLadder -> ParametricLadder
 // Returns a shallow copy of parametric ladder with shallow copy of rungSpecs where each rungSpec's bitrate has been
 // replaced with a value rounded to 3 significant figures
-const rungSpecsCapMaxBitrate = parametricLadder => {
-  console.log(topRungSpec(parametricLadder))
-  console.log(parametricLadder.limits.finalBitrateMax)
-  return topRungSpec(parametricLadder).bitrate > parametricLadder.limits.finalBitrateMax ?
+const rungSpecsCapMaxBitrate = parametricLadder =>
+  topRungSpec(parametricLadder).bitrate > parametricLadder.limits.finalBitrateMax ?
     rungSpecsReplace(
       R.map(
         r => R.assoc(
@@ -295,9 +301,6 @@ const rungSpecsCapMaxBitrate = parametricLadder => {
       parametricLadder
     ) :
     parametricLadder
-}
-
-
 
 // rungSpecsTranspose :: ParametricLadderWihRungSpecHeightsAndWidths -> ParametricLadderWihRungSpecHeightsAndWidths
 // Returns rungs with height and width of each rung swapped

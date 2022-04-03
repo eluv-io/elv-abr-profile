@@ -166,12 +166,13 @@ const swapFields = R.curry(
   )
 )
 
-const tap = fn => treis(fn)
+const spy = fn => treis(fn)
 
-const tapPipe = R.curry(
+const tap = R.curry(
   (label, x) => {
-    console.log(`TAP PIPE: ${label}\n----------`)
+    console.log(`TAP: ${label} ----------`)
     dump(x)
+    console.log('----------')
     return x
   }
 )
@@ -200,9 +201,9 @@ module.exports = {
   roundToMultiple,
   roundToPrecision,
   snapWithinTolerance,
+  spy,
   swapFields,
   tap,
-  tapPipe,
   throwError,
   truthTable
 }
