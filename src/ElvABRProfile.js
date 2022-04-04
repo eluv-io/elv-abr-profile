@@ -181,7 +181,7 @@ const _mergeVidLSIntoProfile = R.curry(
 )
 
 const _resultToPOJO = result => result.either(
-  errVal => Object({ok: false, errors: R.flatten(errVal.map(R.prop('message')).map(R.split('\n')))}),
+  errVal => Object({ok: false, errors: R.uniq(R.flatten(errVal.map(R.prop('message')).map(R.split('\n'))))}),
   okVal => Object({ok: true, result: okVal})
 )
 

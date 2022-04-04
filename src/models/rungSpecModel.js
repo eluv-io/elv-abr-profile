@@ -61,7 +61,8 @@ const RungSpecListModel = M.NonEmptyArrayModel(RungSpecModel).extend()
   .assert(
     isNotOutOfOrderByBitrate,
     R.always('RungSpecs must be sorted (descending) by bitrate')
-  ).as('RungSpecList')
+  )
+  .as('RungSpecList')
 
 module.exports = {
   RungSpecModel,

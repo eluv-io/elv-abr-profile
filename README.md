@@ -272,3 +272,13 @@ Output:
   }
 }
 ```
+If an error occurs, the return value will contain `ok: false` and an `errors` property containing an array of error message strings. For example, if production master sources listed a frame_rate of zero for the video stream used by the variant, the return value would be:
+```json
+{
+  "ok": false,
+  "errors": [
+    "VideoProperties: frameRate must be > 0 (got: 0)"
+  ]
+}
+```
+

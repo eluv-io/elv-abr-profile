@@ -24,8 +24,7 @@ const {truthTable} = require('./utils')
 // internal functions
 // --------------------------------------
 
-const REGEX_FRACTION = /^[1-9][0-9]*(\/[1-9][0-9]*)?$/
-
+const REGEX_FRACTION = /^[0-9]+(\/[1-9][0-9]*)?$/
 
 const fracStrComparator = R.comparator(
   (str1, str2) => Fraction(str1).compare(Fraction(str2)) < 0
@@ -341,10 +340,13 @@ const NonBlankStringModel = StringModel
     assertionErrMsg('must not be a blank string')
   ).as('NonBlankString')
 
-const FractionStringModel = NonBlankStringModel.extend().assert(
-  str => REGEX_FRACTION.exec(str) !== null,
-  assertionErrMsg('must be a string representing a whole number or fraction')
-).as('FractionString')
+const FractionStringModel = NonBlankStringModel.extend()
+  .assert(
+    str => REGEX_FRACTION.exec(str) !== null,
+    assertionErrMsg('must be a string representing a whole number or fraction')
+  )
+  .as('FractionString')
+
 
 // noinspection JSCheckFunctionSignatures
 const BoundedFractionStringModel = (lowerBound, upperBound, lowerInclusive, upperInclusive) => FractionStringModel

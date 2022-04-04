@@ -22,11 +22,11 @@ const VideoPropsModel = M.SealedModel({
   avgBitrate: [M.PositiveNumberModel], // optional (bps): will be checked against ParametricLadder.limits if supplied
   duration: [M.PositiveNumberModel],   // optional (seconds): will be checked against ParametricLadder.limits if supplied
   fileSize: [M.PositiveIntegerModel],  // optional (bytes): will be checked against ParametricLadder.limits if supplied
-  frameRate: M.FractionStringModel,
+  frameRate: M.PositiveFractionStringModel,
   height: M.PositiveIntegerModel,
-  sampleAspectRatio: M.FractionStringModel,
+  sampleAspectRatio: M.PositiveFractionStringModel,
   width: M.PositiveIntegerModel
-})
+}).as('VideoProperties')
 
 // validate :: a -> Err Array | Ok VideoPropsModel
 // Returns a function to use for validation, that returns a crocks Result object that is either an Err (wrapping list
