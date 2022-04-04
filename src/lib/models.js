@@ -8,6 +8,7 @@
 
 const util = require('util')
 
+const Fraction = require('fraction.js')
 const kindOf = require('kind-of')
 const {Ok, Err} = require('crocks/Result')
 const OM = require('objectmodel')
@@ -25,19 +26,27 @@ const {truthTable} = require('./utils')
 
 const REGEX_FRACTION = /^[1-9][0-9]*(\/[1-9][0-9]*)?$/
 
+
+const fracStrComparator = R.comparator(
+  (str1, str2) => Fraction(str1).compare(Fraction(str2)) < 0
+)
+
+const numComparator = R.comparator(R.lt)
+
+
 // assertBounded :: Model -> a -> a -> Boolean -> Boolean -> [(a -> Boolean), String]
 // Returns a pair [assertion function, failure message] for use (via JavaScript spread syntax)
 // in objectmodel .assert() call, e.g. .assert(...assertBounded(NumberModel, 0, 1, true, true))
 // The resulting assertion will check that input is a valid instance of the specified model, then
 // check that the value satisfies the specified bounds.
-const assertBounded = (model, lowerBound, upperBound, lowerInclusive, upperInclusive) => [
+const assertBounded = (model, lowerBound, upperBound, lowerInclusive, upperInclusive, comparatorFn = numComparator) => [
   validateThenAssertTrue(
     model,
     truthTable(
       [R.isNil(lowerBound), R.isNil(upperBound)],
-      boundedBetween(lowerBound, upperBound, lowerInclusive, upperInclusive), // false,false: both bounds present
-      boundedLower(lowerBound, lowerInclusive), // false,true: only check lower bound
-      boundedUpper(upperBound, upperInclusive), // true, false: only check upper bound
+      boundedBetween(lowerBound, upperBound, lowerInclusive, upperInclusive, comparatorFn), // false,false: both bounds present
+      boundedLower(lowerBound, lowerInclusive, comparatorFn), // false,true: only check lower bound
+      boundedUpper(upperBound, upperInclusive, comparatorFn), // true, false: only check upper bound
       R.T // true,true: no bounds passed in, number always valid (allowed for convenience)
     )
   ),
@@ -85,9 +94,9 @@ const assertObjectValuesValid = valueModel =>
 // boundedBetween :: a -> a -> Boolean -> Boolean -> a -> Boolean
 // Returns true if value satisfies specified bounds, false otherwise
 const boundedBetween = R.curry(
-  (lowerBound, upperBound, lowerInclusive, upperInclusive, value) =>
-    boundedLower(lowerBound, lowerInclusive, value) &&
-    boundedUpper(upperBound, upperInclusive, value)
+  (lowerBound, upperBound, lowerInclusive, upperInclusive, comparatorFn, value) =>
+    boundedLower(lowerBound, lowerInclusive, comparatorFn, value) &&
+    boundedUpper(upperBound, upperInclusive, comparatorFn, value)
 )
 
 // boundedBetweenMsg :: a -> a -> Boolean -> Boolean -> a -> String
@@ -100,7 +109,7 @@ const boundedBetweenMsg = (lowerBound, upperBound, lowerInclusive, upperInclusiv
 // boundedLower :: a -> Boolean -> a -> Boolean
 // Returns true if value satisfies specified bound, false otherwise
 const boundedLower = R.curry(
-  (lowerBound, inclusive, value) => (inclusive ? R.lte : R.lt)(lowerBound, value)
+  (lowerBound, inclusive, comparatorFn, value) => comparatorFn(lowerBound, value) < (inclusive ? 1 : 0)
 )
 
 // boundedLowerMsg :: a -> Boolean -> a -> String
@@ -112,7 +121,7 @@ const boundedLowerMsg = (lowerBound, inclusive) => assertionErrMsg(
 // boundedUpper :: a -> Boolean -> a -> Boolean
 // Returns true if value satisfies specified bound, false otherwise
 const boundedUpper = R.curry(
-  (upperBound, inclusive, value) => (inclusive ? R.gte : R.gt)(upperBound, value)
+  (upperBound, inclusive, comparatorFn, value) => comparatorFn(value, upperBound) < (inclusive ? 1 : 0)
 )
 
 // boundedUpperMsg :: a -> Boolean -> a -> String
@@ -147,7 +156,7 @@ const failingValueErrMsg = valueModel =>
     return `key '${
       failingValue(valueModel, value)[0]
     }' points to a value that is an invalid ${valueModel.name} (${
-      validator(valueModel)(failingValue(valueModel, value)[1]).either(R.pipe(R.map(R.prop('message')),R.join('\n')), R.identity)
+      validator(valueModel)(failingValue(valueModel, value)[1]).either(R.pipe(R.map(R.prop('message')), R.join('\n')), R.identity)
     })`
   }
 
@@ -211,14 +220,14 @@ const isValid = R.curry(
 )
 
 const validateGTE = R.curry(
-  (fieldName1, fieldName2, allowMissingValues, input) =>
+  (fieldName1, fieldName2, allowMissingValues, comparatorFn, input) =>
     (allowMissingValues && (input[fieldName1] === undefined || input[fieldName2] === undefined)) ||
-    input[fieldName1] >= input[fieldName2]
+    comparatorFn(input[fieldName1], input[fieldName2]) > -1
 )
 
-const validateGTE_withMessage = (fieldName1, fieldName2, allowMissingValues, msgPrefix = '') =>
+const validateGTE_withMessage = (fieldName1, fieldName2, allowMissingValues, comparatorFn, msgPrefix = '') =>
   [
-    validateGTE(fieldName1, fieldName2, allowMissingValues),
+    validateGTE(fieldName1, fieldName2, allowMissingValues, comparatorFn),
     R.always(`${msgPrefix} ${fieldName1} must be >= ${fieldName2}`)
   ]
 
@@ -251,7 +260,7 @@ const validator = model => input => {
   // console.log(`VALIDATOR: ${model.name}`)
   let foundErrors = []
   const errorCollector = errors => errors.forEach(
-    e => foundErrors.push(R.assoc('message',`${model.name}: ${e.message}`,e))
+    e => foundErrors.push(R.assoc('message', `${model.name}: ${e.message}`, e))
   )
   return model.test(input, errorCollector) ?
     Ok(model(input)) :
@@ -337,6 +346,14 @@ const FractionStringModel = NonBlankStringModel.extend().assert(
   assertionErrMsg('must be a string representing a whole number or fraction')
 ).as('FractionString')
 
+// noinspection JSCheckFunctionSignatures
+const BoundedFractionStringModel = (lowerBound, upperBound, lowerInclusive, upperInclusive) => FractionStringModel
+  .extend()
+  .assert(...assertBounded(FractionStringModel, lowerBound, upperBound, lowerInclusive, upperInclusive, fracStrComparator))
+  .as('BoundedFractionString')
+
+const PositiveFractionStringModel = BoundedFractionStringModel(0, null, false, null)
+
 // Arrays
 //------------
 
@@ -403,16 +420,20 @@ const SealedModel = modelDef => {
 module.exports = {
   ArrayModel,
   assertionErrMsg,
+  BoundedFractionStringModel,
   BoundedIntegerModel,
   BoundedNumberModel,
   FractionStringModel,
+  fracStrComparator,
   isValid,
   KVMapModel,
   NonBlankStringModel,
   NonEmptyArrayModel,
   NonNegativeIntegerModel,
   NonNegativeNumberModel,
+  numComparator,
   ObjectModel,
+  PositiveFractionStringModel,
   PositiveIntegerModel,
   PositiveNumberModel,
   SealedModel,

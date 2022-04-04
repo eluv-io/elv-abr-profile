@@ -14,10 +14,11 @@ const RSM = require('./rungSpecModel')
 // --------------------------------------
 
 
-const assertMaxGTEMin = prefix => M.validateGTE_withMessage(
+const assertMaxGTEMin = (prefix, comparatorFn = M.numComparator) => M.validateGTE_withMessage(
   `${prefix}Max`,
   `${prefix}Min`,
   true,
+  comparatorFn,
   'ParametricLadder.limits: ')
 
 
@@ -34,8 +35,8 @@ const PLOptionsModel = M.SealedModel({
 }).as('PLOptionsModel')
 
 const PLLimitsModel = M.SealedModel({
-  aspectRatioMax: [M.FractionStringModel],
-  aspectRatioMin: [M.FractionStringModel],
+  aspectRatioMax: [M.PositiveFractionStringModel],
+  aspectRatioMin: [M.PositiveFractionStringModel],
   avgBitrateMax: [M.PositiveIntegerModel],
   avgBitrateMin: [M.PositiveIntegerModel],
   fileSizeMax: [M.PositiveIntegerModel],
@@ -43,30 +44,30 @@ const PLLimitsModel = M.SealedModel({
   durationMax: [M.PositiveIntegerModel],
   durationMin: [M.PositiveIntegerModel],
   finalBitrateMax: [M.PositiveIntegerModel],
-  frameRateMax: [M.FractionStringModel],
-  frameRateMin: [M.FractionStringModel],
+  frameRateMax: [M.PositiveFractionStringModel],
+  frameRateMin: [M.PositiveFractionStringModel],
   heightMax: [M.PositiveIntegerModel],
   heightMin: [M.PositiveIntegerModel],
-  sampleAspectRatioMax: [M.FractionStringModel],
-  sampleAspectRatioMin: [M.FractionStringModel],
+  sampleAspectRatioMax: [M.PositiveFractionStringModel],
+  sampleAspectRatioMin: [M.PositiveFractionStringModel],
   widthMax: [M.PositiveIntegerModel],
   widthMin: [M.PositiveIntegerModel],
 })
-  .assert(...assertMaxGTEMin('aspectRatio'))
+  .assert(...assertMaxGTEMin('aspectRatio', M.fracStrComparator))
   .assert(...assertMaxGTEMin('avgBitrate'))
   .assert(...assertMaxGTEMin('fileSize'))
   .assert(...assertMaxGTEMin('duration'))
-  .assert(...assertMaxGTEMin('frameRate'))
+  .assert(...assertMaxGTEMin('frameRate', M.fracStrComparator,))
   .assert(...assertMaxGTEMin('height'))
-  .assert(...assertMaxGTEMin('sampleAspectRatio'))
+  .assert(...assertMaxGTEMin('sampleAspectRatio',M.fracStrComparator))
   .assert(...assertMaxGTEMin('width'))
   .as('ParametricLadderLimits')
 
 // ParametricLadderModel :: a -> ObjectModel | *exception*
 // Returns either an ObjectModel instance containing parametric ladder info or throws an exception
 const ParametricLadderModel = M.ObjectModel({
-  baseAspectRatio: M.FractionStringModel, // TODO: BoundedFractionStringModel(1,null,true,null)
-  baseFrameRate: M.FractionStringModel,   // TODO: PositiveFractionStringModel
+  baseAspectRatio: M.BoundedFractionStringModel('1',null,true,null), // at least 1 (no portrait mode)
+  baseFrameRate: M.PositiveFractionStringModel,
   rungSpecs: RSM.RungSpecListModel,
   options: PLOptionsModel,
   limits: [PLLimitsModel]

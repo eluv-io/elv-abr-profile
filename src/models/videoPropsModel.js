@@ -19,13 +19,13 @@ const M = require('../lib/models')
 // NOTE: an ingest file may contain audio also, causing apparent discrepancy
 // where fileSize >> (duration * avgBitrate/8)
 const VideoPropsModel = M.SealedModel({
-  width: M.PositiveIntegerModel,
+  avgBitrate: [M.PositiveNumberModel], // optional (bps): will be checked against ParametricLadder.limits if supplied
+  duration: [M.PositiveNumberModel],   // optional (seconds): will be checked against ParametricLadder.limits if supplied
+  fileSize: [M.PositiveIntegerModel],  // optional (bytes): will be checked against ParametricLadder.limits if supplied
+  frameRate: M.FractionStringModel,
   height: M.PositiveIntegerModel,
   sampleAspectRatio: M.FractionStringModel,
-  frameRate: M.FractionStringModel,
-  duration: [M.PositiveNumberModel], // optional (seconds): will be checked against ParametricLadder.limits if supplied
-  fileSize: [M.PositiveIntegerModel], // optional (bytes): will be checked against ParametricLadder.limits if supplied
-  avgBitrate: [M.PositiveNumberModel] // optional (bps): will be checked against ParametricLadder.limits if supplied
+  width: M.PositiveIntegerModel
 })
 
 // validate :: a -> Err Array | Ok VideoPropsModel
