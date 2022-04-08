@@ -139,7 +139,7 @@ const failingKey = R.curry(
 // Returns a function that can be used in .assert() to construct a validation error message containing the bad key
 const failingKeyErrMsg = keyModel =>
   // eslint-disable-next-line no-unused-vars
-  (result, value) => `property name '${failingKey(keyModel, value)}' is not a valid ${keyModel.name}`
+  (result, value) => `invalid property name '${failingKey(keyModel, value)}'(is not a valid ${keyModel.name})`
 
 // failingValue :: ObjectModel -> Object -> (k, v) | undefined
 // Iterates over object properties and returns first value where isValid(valueModel) is false

@@ -12,24 +12,6 @@ const R = require('ramda')
 // const treis = require('treis')
 
 // --------------------------------------
-// internal functions
-// --------------------------------------
-
-const invokeIfGeneratorFunction = x =>
-  kindOf(x) === 'generatorfunction' ?
-    x() :
-    x
-
-
-// roundToPrecisionUnsafe :: Number -> Number -> Number
-// Rounds a positive value to a given number of significant figures.
-// Does not protect against value <= 0
-const roundToPrecisionUnsafe = (sigFigs, value) => {
-  const factor = 10 ** (1 + Math.trunc(Math.log10(value)) - sigFigs)
-  return Math.round(value / factor) * factor
-}
-
-// --------------------------------------
 // exported functions
 // --------------------------------------
 
@@ -66,9 +48,12 @@ const join = R.curry(
 
 
 const permuterGenFn = (items1, items2, combineFn, filterFn) => {
+
+  const _invokeIfGeneratorFunction = x => kindOf(x) === 'generatorfunction' ? x() : x
+
   return function* () {
-    for (const item1 of invokeIfGeneratorFunction(items1)) {
-      for (const item2 of invokeIfGeneratorFunction(items2)) {
+    for (const item1 of _invokeIfGeneratorFunction(items1)) {
+      for (const item2 of _invokeIfGeneratorFunction(items2)) {
         const result = combineFn(item1, item2)
         if (!filterFn || filterFn(result)) yield result
       }
@@ -134,11 +119,20 @@ const roundEven = roundToMultiple(2)
 // Rounds a value to a certain number of significant digits
 const roundToPrecision = R.curry(
   (sigFigs, value) => {
+
+    // _roundToPrecisionUnsafe :: Number -> Number -> Number
+    // Rounds a positive value to a given number of significant figures.
+    // Does not protect against value <= 0
+    const _roundToPrecisionUnsafe = (sigFigs, value) => {
+      const factor = 10 ** (1 + Math.trunc(Math.log10(value)) - sigFigs)
+      return Math.round(value / factor) * factor
+    }
+
     switch (Math.sign(value)) {
     case 1:
-      return roundToPrecisionUnsafe(sigFigs, value)
+      return _roundToPrecisionUnsafe(sigFigs, value)
     case -1:
-      return -roundToPrecisionUnsafe(sigFigs, -value)
+      return -_roundToPrecisionUnsafe(sigFigs, -value)
     default:
       return 0
     }
