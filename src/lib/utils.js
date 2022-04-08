@@ -9,7 +9,7 @@
 const Fraction = require('fraction.js')
 const kindOf = require('kind-of')
 const R = require('ramda')
-const treis = require('treis')
+// const treis = require('treis')
 
 // --------------------------------------
 // internal functions
@@ -166,7 +166,7 @@ const swapFields = R.curry(
   )
 )
 
-const spy = fn => treis(fn)
+// const spy = fn => treis(fn)
 
 const tap = R.curry(
   (label, x) => {
@@ -201,7 +201,7 @@ module.exports = {
   roundToMultiple,
   roundToPrecision,
   snapWithinTolerance,
-  spy,
+  // spy,
   swapFields,
   tap,
   throwError,
