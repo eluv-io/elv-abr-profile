@@ -40,7 +40,7 @@ describe('RungSpecModel', function () {
     ).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('RungSpec: bitrate must be > 0 (got: 0)')
+    result[0].should.equal('RungSpec: bitrate must be > 0 (got: 0)')
 
     result = ValidateRungSpecModel(
       {
@@ -51,7 +51,7 @@ describe('RungSpecModel', function () {
 
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('RungSpec: dim must be > 0 (got: 0)')
+    result[0].should.equal('RungSpec: dim must be > 0 (got: 0)')
 
     result = ValidateRungSpecModel(
       {
@@ -108,8 +108,8 @@ describe('RungSpecListModel', function () {
     kindOf(result).should.equal('array')
     // console.log(JSON.stringify(result,null,2))
     result.length.should.equal(2)
-    result[0].message.should.equal('RungSpecList: Array[0].bitrate must be > 0 (got: 0)')
-    result[1].message.should.equal('RungSpecList: Array[1].bitrate must be > 0 (got: 0)')
+    result[0].should.equal('RungSpecList: Array[0].bitrate must be > 0 (got: 0)')
+    result[1].should.equal('RungSpecList: Array[1].bitrate must be > 0 (got: 0)')
   })
 
   it('should return clear errors for out of order input', function () {

@@ -56,44 +56,44 @@ describe('BoundedNumberModel', function () {
     let result = ValidateZeroToOneInclusive().either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: expecting Number, got undefined')
+    result[0].should.equal('ZeroToOneInclusive: expecting Number, got undefined')
 
     result = ValidateZeroToOneInclusive(null).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: expecting Number, got null')
+    result[0].should.equal('ZeroToOneInclusive: expecting Number, got null')
 
     result = ValidateZeroToOneInclusive({foo: 1}).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: expecting Number, got Object {\n\tfoo: 1 \n}')
+    result[0].should.equal('ZeroToOneInclusive: expecting Number, got Object {\n\tfoo: 1 \n}')
 
     result = ValidateZeroToOneInclusive('foo').either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: expecting Number, got String "foo"')
+    result[0].should.equal('ZeroToOneInclusive: expecting Number, got String "foo"')
   })
 
   it('should only return 1 error for out-of-range inputs', function () {
     let result = ValidateZeroToOneInclusive(-1).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: Value must be >= 0 and <= 1 (got: -1)')
+    result[0].should.equal('ZeroToOneInclusive: Value must be >= 0 and <= 1 (got: -1)')
 
     result = ValidateZeroToOneInclusive(2).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneInclusive: Value must be >= 0 and <= 1 (got: 2)')
+    result[0].should.equal('ZeroToOneInclusive: Value must be >= 0 and <= 1 (got: 2)')
 
     result = ValidateZeroToOneLowerInclusive(1).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneLowerInclusive: Value must be >= 0 and < 1 (got: 1)')
+    result[0].should.equal('ZeroToOneLowerInclusive: Value must be >= 0 and < 1 (got: 1)')
 
     result = ValidateZeroToOneUpperInclusive(0).either(R.identity, R.identity)
     kindOf(result).should.equal('array')
     result.length.should.equal(1)
-    result[0].message.should.equal('ZeroToOneUpperInclusive: Value must be > 0 and <= 1 (got: 0)')
+    result[0].should.equal('ZeroToOneUpperInclusive: Value must be > 0 and <= 1 (got: 0)')
 
   })
 })
