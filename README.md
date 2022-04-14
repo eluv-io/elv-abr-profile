@@ -1,4 +1,4 @@
-# Eluvio ABR Profile Generator
+# elv-abr-profile
 
 A library for creating ABR (Adjustable Bitrate) Profiles to use when ingesting media into the Eluvio Content Fabric.
 
@@ -21,7 +21,7 @@ npm install --save @eluvio/elv-abr-profile
 #### Generate an ABR Profile based on Production Master metadata and default bitrate ladder / standard aspect ratio list
 
 ```javascript
-const ABR = require('./src/ElvABRProfile');
+const ABR = require('elv-abr-profile');
 
 // Normally obtained from production master object's metadata @ /production_master/sources
 // For this example, the master contains a single file 'test.mp4'

@@ -1,9 +1,9 @@
-// ElvLadderSpecs.js
+// ElvABRProfile.js
 //
 // Utility to generate an ABR Profile object for a given ingest video from a parametric ladder spec and
 // a list of standard aspect ratios.
 //
-// Also provides a default parametric ladder, default list of standard aspect ratios, and an example default set of
+// Also provides a default parametric ladder, default list of standard aspect ratios, and an example set of
 // video properties
 
 // --------------------------------------

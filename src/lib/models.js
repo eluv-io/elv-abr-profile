@@ -8,6 +8,7 @@
 
 const util = require('util')
 
+const {DateTime} = require('luxon')
 const Fraction = require('fraction.js')
 const kindOf = require('kind-of')
 const {Ok, Err} = require('crocks/Result')
@@ -25,6 +26,10 @@ const {truthTable} = require('./utils')
 // --------------------------------------
 
 const REGEX_FRACTION = /^[0-9]+(\/[1-9][0-9]*)?$/
+
+// First-pass validator for timestamps in format like "2022-04-09T05:09:13Z"
+// (use datetime library to validate that MM-DD and hh:mm:ss are sensible
+const REGEX_UTC_TIMESTAMP = /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$/
 
 const fracStrComparator = R.comparator(
   (str1, str2) => Fraction(str1).compare(Fraction(str2)) < 0
@@ -56,6 +61,17 @@ const assertBounded = (model, lowerBound, upperBound, lowerInclusive, upperInclu
     boundedUpperMsg(upperBound, upperInclusive), // true, false: upper bound only
     '' // true,true: no bounds passed in, number always valid (allowed for convenience)
   )
+]
+
+
+const assertMatchesRegex = regex => [
+  validateThenAssertTrue(StringModel, regex.test.bind(regex)), // see https://stackoverflow.com/a/20579046
+  failingRegexCheckErrMsg(regex)
+]
+
+const assertValidDatetimeString = () => [
+  validateThenAssertTrue(NonBlankStringModel, (str) => DateTime.fromISO(str).invalid === null),
+  assertionErrMsg('is not a valid datetime string')
 ]
 
 // TODO: refactor to check values and keys in same loop (and  construct error message as well)
@@ -140,6 +156,14 @@ const failingKey = R.curry(
 const failingKeyErrMsg = keyModel =>
   // eslint-disable-next-line no-unused-vars
   (result, value) => `invalid property name '${failingKey(keyModel, value)}'(is not a valid ${keyModel.name})`
+
+
+// failingRegexCheckErrMsg :: ObjectModel -> Object -> String)
+// Returns a function that can be used in .assert() to construct a validation error message containing the bad value
+const failingRegexCheckErrMsg = regex =>
+  (result, value, name) =>
+    `${name || 'String'}: '${value}' is not in valid format or contains illegal characters (must match regular expression: ${regex})`
+
 
 // failingValue :: ObjectModel -> Object -> (k, v) | undefined
 // Iterates over object properties and returns first value where isValid(valueModel) is false
@@ -248,7 +272,9 @@ const validateThenAssertFalse = R.curry(
 // failure is not included in validation error list if input does not even meet lesser requirements.
 const validateThenAssertTrue = R.curry(
   (model, assertFn, input) =>
-    !(isValid(model, input) && !assertFn(input))
+    !(
+      isValid(model, input) && !assertFn(input)
+    )
 )
 
 
@@ -349,6 +375,19 @@ const FractionStringModel = NonBlankStringModel.extend()
 
 
 // noinspection JSCheckFunctionSignatures
+const RegexMatchedStringModel = regex => StringModel
+  .extend()
+  .assert(...assertMatchesRegex(regex))
+  .as('RegexMatchedString')
+
+// noinspection JSCheckFunctionSignatures
+const UTCTimestampStringModel = RegexMatchedStringModel(REGEX_UTC_TIMESTAMP)
+  .extend()
+  .assert(...assertValidDatetimeString())
+  .as('UTCTimestampString')
+
+
+// noinspection JSCheckFunctionSignatures
 const BoundedFractionStringModel = (lowerBound, upperBound, lowerInclusive, upperInclusive) => FractionStringModel
   .extend()
   .assert(...assertBounded(FractionStringModel, lowerBound, upperBound, lowerInclusive, upperInclusive, fracStrComparator))
@@ -438,9 +477,13 @@ module.exports = {
   PositiveFractionStringModel,
   PositiveIntegerModel,
   PositiveNumberModel,
+  RegexMatchedStringModel,
   SealedModel,
+  StringModel,
+  UTCTimestampStringModel,
   validateGTE,
   validateGTE_withMessage,
   validateThenAssertFalse,
+  validateThenAssertTrue,
   validator
 }

@@ -21,6 +21,7 @@
     "crocks": "^0.12.4",
     "fraction.js": "^4.2.0",
     "kind-of": "^6.0.3",
+    "luxon": "^2.3.1",
     "objectmodel": "^4.3.0",
     "ramda": "^0.28.0"
   },

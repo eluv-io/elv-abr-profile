@@ -10,6 +10,17 @@
 
 const M = require('../lib/models')
 
+
+// --------------------------------------
+// internal functions
+// --------------------------------------
+
+const REGEX_LADDER_SPEC_KEY = /^{"media_type":"video","aspect_ratio_height":[1-9][0-9]*,"aspect_ratio_width":[1-9][0-9]*}$/
+
+// --------------------------------------
+// exported functions
+// --------------------------------------
+
 const X264VideoRungSpecModel = M.SealedModel(
   {
     bit_rate: M.PositiveIntegerModel,
@@ -21,8 +32,6 @@ const X264VideoRungSpecModel = M.SealedModel(
 ).as('X264VideoRungSpec')
 
 const RungSpecListModel = M.ArrayModel(X264VideoRungSpecModel)
-
-const REGEX_LADDER_SPEC_KEY = /^{"media_type":"video","aspect_ratio_height":[1-9][0-9]*,"aspect_ratio_width":[1-9][0-9]*}$/
 
 const VideoLadderSpecKeyModel = M.NonBlankStringModel.extend().assert(
   str => REGEX_LADDER_SPEC_KEY.exec(str) !== null,
