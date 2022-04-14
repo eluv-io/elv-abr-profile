@@ -1,12 +1,16 @@
 # elv-abr-profile
 
-A library for creating ABR (Adjustable Bitrate) Profiles to use when ingesting media into the Eluvio Content Fabric.
+A package for creating ABR (Adjustable Bitrate) Profiles to use when ingesting media into the Eluvio Content Fabric.
 
 The video bitrate ladder in the generated profile is based on:
 
 * The properties of the video to ingest
 * A parametric ladder specification
 * A list of standard aspect ratios to (optionally) conform to
+
+The audio bitrate ladder is fixed based on the number of channels in the audio stream.
+
+**NOTE:** This package currently does not support working with profiles for x265 (hevc) mezzanines.
 
 ## Installation
 

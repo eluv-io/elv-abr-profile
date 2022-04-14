@@ -3,7 +3,7 @@ chai.should()
 
 // noinspection JSCheckFunctionSignatures
 chai.use(require('chai-things'))
-// const expect = chai.expect
+const expect = chai.expect
 
 const R = require('ramda')
 
@@ -68,7 +68,20 @@ describe('ABRProfileForVariant', function () {
       const bad_sources = R.assocPath(['test.mp4', 'streams', 0, 'frame_rate'], '0', PM_SOURCES_TEST_MP4)
       const abrProfile = ABR.ABRProfileForVariant(bad_sources, PM_VARIANT_TEST_MP4)
       abrProfile.ok.should.be.false
-      dump(abrProfile)
+      // dump(abrProfile)
     }
+  )
+})
+
+describe('ProfileExcludeDRM', function () {
+  const abrProfile = ABR.ABRProfileForVariant(PM_SOURCES_TEST_MP4, PM_VARIANT_TEST_MP4).result
+  const retVal = ABR.ProfileExcludeDRM(abrProfile)
+
+  it('should return ok==true when called with result from ABRProfileForVariant',
+    () => retVal.ok.should.be.true
+  )
+
+  it('should return result without hls-fairplay playout_format when called with result from ABRProfileForVariant',
+    () => expect(retVal.result.playout_formats['hls-fairplay']).to.be.undefined
   )
 })

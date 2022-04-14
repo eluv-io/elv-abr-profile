@@ -289,7 +289,7 @@ const validator = model => input => {
   )
   return model.test(input, errorCollector) ?
     Ok(model(input)) :
-    Err(foundErrors)
+    Err(foundErrors.map(R.prop('message')))
 }
 
 

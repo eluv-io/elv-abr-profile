@@ -12,7 +12,8 @@
 
 const liftA2 = require('crocks/helpers/liftA2')
 const liftA3 = require('crocks/helpers/liftA3')
-const {Ok} = require('crocks/Result')
+const {Ok, Err} = require('crocks/Result')
+const chain = require('crocks/pointfree/chain')
 const R = require('ramda')
 
 // --------------------------------------
@@ -132,6 +133,15 @@ const ABR_PROFILE_TEMPLATE = {
   }
 }
 
+// Shorthand accessor for modifying ABR Profile ladder_specs
+const LADDER_SPECS_LENS = R.lensProp('ladder_specs')
+
+// Shorthand accessor for modifying ABR Profile playout_formats
+const PLAYOUT_FORMATS_LENS = R.lensProp('playout_formats')
+
+// Shorthand accessor for modifying ABR Profile segment_specs
+const SEGMENT_SPECS_LENS = R.lensProp('segment_specs')
+
 const _abrProfileForVariant = (prodMasterSources, prodMasterVariant, abrProfile, standardAspectRatios) => {
   // assemble videoProps from prodMaster info
 
@@ -148,9 +158,9 @@ const _abrProfileForVariant = (prodMasterSources, prodMasterVariant, abrProfile,
     }
   }
 
-  if(videoStreamInfo === null) {
+  if (videoStreamInfo === null) {
     // return audio-only profile
-    return Ok(ABR_PROFILE_TEMPLATE)
+    return _profileExcludeVideo(abrProfile)
   } else {
     const videoProps = {
       avgBitrate: videoStreamInfo.bit_rate,
@@ -170,6 +180,12 @@ const _abrProfileForVariant = (prodMasterSources, prodMasterVariant, abrProfile,
 
 }
 
+// _assertResult :: (a -> Boolean) -> String -> a -> Result [String] | a
+// Checks that testFn(value) is true. If so, returns Ok(value) else returns Err([errStr])
+const _assertResult = R.curry(
+  (testFn, errStr, value) => testFn(value) ? Ok(value) : Err([errStr])
+)
+
 const _mergeVidLSIntoProfile = R.curry(
   (abrProfile, vidLadderSpecs) => R.omit(
     ['video_parametric_ladder'],
@@ -180,8 +196,61 @@ const _mergeVidLSIntoProfile = R.curry(
   )
 )
 
+// _profileRemove :: Lens -> ([k,v] -> Boolean) -> ABRProfile -> ABRProfile
+// Replaces sub-object within abrProfile with a filtered shallow copy where each [key,value] pair returns false when
+// evaluated with rejectFn()
+const _profileRemove = R.curry(
+  (lens, rejectFn, abrProfile) => R.over(
+    lens,
+    R.pipe(R.toPairs, R.reject(rejectFn), R.fromPairs),
+    abrProfile
+  )
+)
+
+const _profileExcludeAudio = R.pipe(
+  _profileRemove(
+    LADDER_SPECS_LENS,
+    (kvPair) => kvPair[0].includes('"media_type":"audio"')
+  ),
+  _profileRemove(
+    SEGMENT_SPECS_LENS,
+    (kvPair) => kvPair[0] === 'audio'
+  ),
+  _assertResult(R.pipe(R.view(LADDER_SPECS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-audio ladder_specs'),
+  chain(_assertResult(R.pipe(R.view(SEGMENT_SPECS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-audio segment_specs'))
+)
+
+const _profileExcludeClear = R.pipe(
+  _profileRemove(
+    PLAYOUT_FORMATS_LENS,
+    (kvPair) => R.isNil(kvPair[1].drm)
+  ),
+  _assertResult(R.pipe(R.view(PLAYOUT_FORMATS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-clear playout_formats')
+)
+
+const _profileExcludeDRM = R.pipe(
+  _profileRemove(
+    PLAYOUT_FORMATS_LENS,
+    (kvPair) => !R.isNil(kvPair[1].drm)
+  ),
+  _assertResult(R.pipe(R.view(PLAYOUT_FORMATS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-DRM playout_formats')
+)
+
+const _profileExcludeVideo = R.pipe(
+  _profileRemove(
+    LADDER_SPECS_LENS,
+    (kvPair) => kvPair[0].includes('\\"media_type\\":\\"video\\"')
+  ),
+  _profileRemove(
+    SEGMENT_SPECS_LENS,
+    (kvPair) => kvPair[0] === 'video'
+  ),
+  _assertResult(R.pipe(R.view(LADDER_SPECS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-video ladder_specs'),
+  chain(_assertResult(R.pipe(R.view(SEGMENT_SPECS_LENS), R.keys, R.length, R.lt(0)), 'ABR Profile has no non-video segment_specs'))
+)
+
 const _resultToPOJO = result => result.either(
-  errVal => Object({ok: false, errors: R.uniq(R.flatten(errVal.map(R.prop('message')).map(R.split('\n'))))}),
+  errVal => Object({ok: false, errors: R.uniq(R.flatten(errVal.map(R.split('\n'))))}),
   okVal => Object({ok: true, result: okVal})
 )
 
@@ -217,6 +286,15 @@ const DEFAULT_PARAMETRIC_ABR_PROFILE = R.mergeDeepRight(
   {video_parametric_ladder: PL.DEFAULT}
 )
 
+const ProfileExcludeAudio = abrProfile => _resultToPOJO(_profileExcludeAudio(abrProfile))
+
+const ProfileExcludeClear = abrProfile => _resultToPOJO(_profileExcludeClear(abrProfile))
+
+const ProfileExcludeDRM = abrProfile => _resultToPOJO(_profileExcludeDRM(abrProfile))
+
+const ProfileExcludeVideo = abrProfile => _resultToPOJO(_profileExcludeVideo(abrProfile))
+
+
 // VideoLadderSpecs :: VideoProps => ParametricLadder => AspectRatioList => Object
 //
 // Tries to prepare an object with only a 'ladder_specs' property with a single entry (with key specifically
@@ -245,5 +323,9 @@ module.exports = {
   DEFAULT_PARAMETRIC_LADDER: PL.DEFAULT,
   DEFAULT_STANDARD_ASPECT_RATIOS: AR.STANDARDS,
   DEFAULT_VIDEO_PROPERTIES: V.EXAMPLE,
+  ProfileExcludeAudio,
+  ProfileExcludeClear,
+  ProfileExcludeDRM,
+  ProfileExcludeVideo,
   VideoLadderSpecs
 }
