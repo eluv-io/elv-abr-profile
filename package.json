@@ -5,6 +5,7 @@
   "homepage": "https://github.com/eluv-io/elv-abr-profile",
   "main": "src/ElvABRProfile.js",
   "scripts": {
+    "bump-version": "npm --git-tag-version --no-commit-hooks version patch",
     "test": "mocha --recursive \"./test/**/*.test.js\"",
     "test-quick": "mocha \"./test/ElvABRProfile.quick.test.js\""
   },
