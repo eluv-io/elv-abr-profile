@@ -15,6 +15,12 @@
     "content",
     "fabric"
   ],
+  "files": [
+    "/src",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
   "author": "Eluvio, Inc.",
   "license": "MIT",
   "dependencies": {
