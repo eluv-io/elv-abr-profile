@@ -32,6 +32,10 @@ describe('VideoLadderSpecs', function () {
         dump(ls.errors)
       }
       ls.ok.should.be.true
+
+      // check that rungs are in descending order
+
+
     })
   }
 

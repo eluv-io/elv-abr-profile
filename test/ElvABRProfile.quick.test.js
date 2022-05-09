@@ -26,6 +26,40 @@ describe('VideoLadderSpecs', function () {
   it('should return the expected default video ladder spec when called without any arguments',
     () => R.equals(ls.result, DEFAULT_VIDEO_LADDER_SPEC).should.be.true)
 
+  const ls2 = ABR.VideoLadderSpecs(
+    {
+      height: 2560,
+      width: 1600,
+      sampleAspectRatio: '1',
+      frameRate: '30'
+    }
+  )
+
+  if (!ls2.ok) dump(ls2)
+
+  it('should return a valid ladder spec when called with a video',
+    () => ls2.ok.should.be.true)
+
+  const pl = ABR.DEFAULT_PARAMETRIC_LADDER
+  pl.options.upscale = false
+  pl.options.snapAR = false
+
+  const ls3 = ABR.VideoLadderSpecs(
+    {
+      height: 1600,
+      width: 2560,
+      sampleAspectRatio: '1',
+      frameRate: '30'
+    },
+    pl
+  )
+
+  if (!ls3.ok) dump(ls3)
+  dump(ls3)
+
+  it('should return a valid ladder spec when called with a video and a parametric ladder',
+    () => ls3.ok.should.be.true)
+
 
 })
 
@@ -43,7 +77,7 @@ describe('ABRProfileForVariant', function () {
 
       topVideoRung
         .bit_rate
-        .should.equal(12600000)
+        .should.equal(8550000)
     })
 
   it('should return a valid ABR profile when called with audio-only production master info',

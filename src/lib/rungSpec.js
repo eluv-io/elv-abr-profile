@@ -41,7 +41,7 @@ const dimDeviation = R.curry(
 // with dim == landscapeVideoHeight
 // (or undefined if landscapeVideoHeight is less than anything in rungSpecs
 const newRungLowerNeighbor = (rungSpecs, landscapeVideoHeight) =>
-  R.last(
+  R.head(
     R.filter(
       (rsIndexPair) => rsIndexPair[0].dim < landscapeVideoHeight,
       mapIndexed((rs, i) => [rs, i], rungSpecs),
