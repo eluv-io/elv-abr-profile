@@ -48,7 +48,7 @@ const DEFAULT = {
   ],
   options: {
     upscale: false,            // use all rungSpecs even if source < top rung (if {upscale: false} && source < top rung, use dim from source as top rung)
-    snapAR: true,              // snap aspect ratio for videos that are close to a standard AR
+    snapAR: false,              // snap aspect ratio for videos that are close to a standard AR
     maxARSnap: 0.06,           // correct up to 6% deviation from a standard aspect ratio (if {snapAR: true})
     minDimStepdown: 0.12,      // for cases where {upscale: false} is specified, make sure next rung dim is at least 12% smaller
     frameRateScaleFactor: 0.5, // for a 2x increase in fps, scale bitrate by only 1.5. For 0.5x decrease, scale bitrate by only 0.75
