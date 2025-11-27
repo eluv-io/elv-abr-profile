@@ -162,13 +162,15 @@ const _abrProfileForVariant = (prodMasterSources, prodMasterVariant, abrProfile,
     // return audio-only profile
     return _profileExcludeVideo(abrProfile)
   } else {
+    const actualHeight = (videoStreamInfo.rotate === 90 || videoStreamInfo.rotate === 270) ? videoStreamInfo.width : videoStreamInfo.height
+    const actualWidth = (videoStreamInfo.rotate === 90 || videoStreamInfo.rotate === 270) ? videoStreamInfo.height : videoStreamInfo.width
     const videoProps = {
       avgBitrate: videoStreamInfo.bit_rate,
       duration: videoStreamInfo.duration,
       frameRate: videoStreamInfo.frame_rate,
-      height: videoStreamInfo.height,
+      height: actualHeight,
       sampleAspectRatio: videoStreamInfo.sample_aspect_ratio,
-      width: videoStreamInfo.width
+      width: actualWidth
     }
 
     const parametricLadder = abrProfile.video_parametric_ladder || PL.DEFAULT
