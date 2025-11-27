@@ -14,6 +14,7 @@ const DEFAULT_VIDEO_LADDER_SPEC = require('./fixtures/video-ladder-spec-default'
 const PM_SOURCES_TEST_MP4 = require('./fixtures/production-master-sources-test-mp4')
 const PM_SOURCES_ZERO_BITRATE_TEST_MP4 = require('./fixtures/production-master-sources-zero-bitrate-test-mp4')
 const PM_VARIANT_TEST_MP4 = require('./fixtures/production-master-variant-test-mp4')
+const PM_VARIANT_ROTATED_TEST_MP4 = require('./fixtures/production-master-rotated-variant-test-mp4')
 
 describe('VideoLadderSpecs', function () {
 
@@ -74,6 +75,22 @@ describe('ABRProfileForVariant', function () {
       abrProfile.ok.should.be.true
       const topVideoRung = abrProfile.result
         .ladder_specs['{"media_type":"video","aspect_ratio_height":9,"aspect_ratio_width":16}']
+        .rung_specs[0]
+
+      topVideoRung
+        .bit_rate
+        .should.equal(8550000)
+    })
+
+  it('should return rotated ABR profile when called with production master variant with rotated video',
+    () => {
+      const abrProfile = ABR.ABRProfileForVariant(PM_SOURCES_TEST_MP4, PM_VARIANT_ROTATED_TEST_MP4)
+
+      if (!abrProfile.ok) dump(abrProfile)
+
+      abrProfile.ok.should.be.true
+      const topVideoRung = abrProfile.result
+        .ladder_specs['{"media_type":"video","aspect_ratio_height":16,"aspect_ratio_width":9}']
         .rung_specs[0]
 
       topVideoRung
